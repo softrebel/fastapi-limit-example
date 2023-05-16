@@ -36,9 +36,17 @@ You can run this project in two ways:
 ## Endpoints
 there 3 main endpoints:
 1. `v1/sum` for sum up a,b from query parameters.
+
+![v1/sum](./assets/sum.jpg)
 2. `v1/history` for get all sum requests historiy.
+
+![v1/history](./assets/history.jpg)
 3. `v1/total` for get only total from last requests.
 
+![v1/total](./assets/total.jpg)
+
+
+Example Info:
 ![endpoints](./assets/call_endpoints.jpg)
 
 
@@ -65,11 +73,13 @@ def limiter(key, limit):
             "ttl": ttl
         }
 
-def call_limiter(ip, limit):
+def call_limiter(ip, limit=os.getenv('LIMIT_CALL_PER_HOUR',3)):
+    limit=int(limit)
     key=f'call_{ip}'
     return limiter(key, limit)
 
-def bad_call_limiter(ip, limit):
+def bad_call_limiter(ip, limit=os.getenv('LIMIT_BAD_CALL_PER_HOUR',4)):
+    limit=int(limit)
     key=f'bad_call_{ip}'
     return limiter(key, limit)
 ```
