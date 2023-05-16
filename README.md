@@ -99,12 +99,18 @@ async def sum_up(request: Request, model: OperationInput = Depends()):
     created_operation = await db['operation'].find_one({"_id": new_operation.inserted_id})
     return created_operation
 ```
+#### call limit
+![limit call](./assets/throttle_endpoint.jpg)
 
-![limit call info](./assets/throttle_endpoint.jpg)
-
+#### call limit response
 ![limit call info](./assets/call_limit.jpg)
 
 ### Limit Bad Call Example:
+This limit include two types of user behaviours:
+1. Call endpoint that not exists (not found).
+2. Call endpoint in wrong way (bad request).
+
+This limit sums up these two behaviours.
 
 ```python
 async def not_found_error(request: Request, exc: HTTPException):
@@ -123,10 +129,43 @@ async def not_found_error(request: Request, exc: HTTPException):
     return JSONResponse(response.dict(), status_code=status.HTTP_404_NOT_FOUND)
 
 
-exception_handlers = {404: not_found_error}
+async def unproccessable_entity(request: Request, exc: HTTPException):
+    clientIp = request.client.host
+    res = bad_call_limiter(clientIp, 3)
+    if not res["call"]:
+        response = ResponseViewModel(
+            message='bad call limit reached',
+            status=status.HTTP_503_SERVICE_UNAVAILABLE,
+            data={"ttl": res["ttl"]}
+        )
+        return JSONResponse(response.dict(), status_code=status.HTTP_503_SERVICE_UNAVAILABLE)
+
+    response = ResponseViewModel(
+            message='invalid parameter',
+            status=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            data={"detail": exc.errors(), "body": exc.body}
+        )
+    return JSONResponse(
+        status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+        content=response.dict(),
+    )
+
+exception_handlers = {
+    404: not_found_error,
+    RequestValidationError: unproccessable_entity
+}
 ```
 
+#### Bad Call Limit
 ![limit bad call info](./assets/bad_call_info.jpg)
 
+#### Not Found Call Limit
+![limit not found call](./assets/not_found_call_info.jpg)
+
+#### Mixed Bad Call Limit
+![limit mixed bad call](./assets/mix_call_limit.jpg)
+
+
+#### bad call limit response
 ![limit bad call](./assets/bad_call_limit.jpg)
 
