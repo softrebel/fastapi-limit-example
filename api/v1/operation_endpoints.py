@@ -2,7 +2,7 @@ from fastapi import APIRouter,Depends, Request,HTTPException,status
 from configs import db
 from models import OperationInput, OperationCreating, OperationViewModel, TotalViewModel
 from fastapi.encoders import jsonable_encoder
-from configs.throttling import limiter
+from configs.throttling import call_limiter
 
 router = APIRouter()
 
@@ -10,7 +10,7 @@ router = APIRouter()
 @router.get('/sum/', response_model=OperationViewModel)
 async def sum_up(request: Request, model: OperationInput = Depends()):
     clientIp = request.client.host
-    res = limiter(clientIp, 5)
+    res = call_limiter(clientIp, 5)
     if not res["call"]:
         raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE,      detail={
             "message": "call limit reached",

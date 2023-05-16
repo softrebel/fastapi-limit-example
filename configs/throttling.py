@@ -17,3 +17,13 @@ def limiter(key, limit):
             "call": True,
             "ttl": ttl
         }
+
+
+
+def call_limiter(ip, limit):
+    key=f'call_{ip}'
+    return limiter(key, limit)
+
+def bad_call_limiter(ip, limit):
+    key=f'bad_call_{ip}'
+    return limiter(key, limit)
