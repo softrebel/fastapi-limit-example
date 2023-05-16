@@ -1,5 +1,5 @@
 from typing import Union
-from fastapi import FastAPI,Depends
+from fastapi import FastAPI,Depends,Request
 
 import os
 from dotenv import load_dotenv
@@ -18,8 +18,9 @@ app.include_router(operation_endpoints.router, prefix="/v1")
 
 
 @app.get('/')
-def root():
-    return {"Hello":"World"}
+def root(request:Request):
+    clientIp = request.client.host
+    return {"Hello":"World","ip":clientIp}
 
 
 
