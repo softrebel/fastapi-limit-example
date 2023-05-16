@@ -20,10 +20,12 @@ def limiter(key, limit):
 
 
 
-def call_limiter(ip, limit):
+def call_limiter(ip, limit=os.getenv('LIMIT_CALL_PER_HOUR',3)):
+    limit=int(limit)
     key=f'call_{ip}'
     return limiter(key, limit)
 
-def bad_call_limiter(ip, limit):
+def bad_call_limiter(ip, limit=os.getenv('LIMIT_BAD_CALL_PER_HOUR',4)):
+    limit=int(limit)
     key=f'bad_call_{ip}'
     return limiter(key, limit)
